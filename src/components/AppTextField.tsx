@@ -1,0 +1,135 @@
+import React, { useState } from 'react';
+import {
+  View,
+  TextInput,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  TextInputProps,
+  ViewStyle,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Colors } from '../constants/colors';
+
+interface AppTextFieldProps extends TextInputProps {
+  label: string;
+  error?: string;
+  containerStyle?: ViewStyle;
+  leftIcon?: keyof typeof Ionicons.glyphMap;
+  rightIcon?: keyof typeof Ionicons.glyphMap;
+  onRightIconPress?: () => void;
+}
+
+export function AppTextField({
+  label,
+  error,
+  containerStyle,
+  leftIcon,
+  rightIcon,
+  onRightIconPress,
+  secureTextEntry,
+  ...rest
+}: AppTextFieldProps) {
+  const [isFocused, setIsFocused] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const isPassword = secureTextEntry;
+  const shouldObscure = isPassword && !showPassword;
+
+  return (
+    <View style={[styles.container, containerStyle]}>
+      <Text style={styles.label}>{label}</Text>
+      <View
+        style={[
+          styles.inputWrapper,
+          isFocused && styles.inputWrapperFocused,
+          !!error && styles.inputWrapperError,
+        ]}
+      >
+        {leftIcon && (
+          <Ionicons
+            name={leftIcon}
+            size={20}
+            color={Colors.grey400}
+            style={styles.leftIcon}
+          />
+        )}
+        <TextInput
+          style={[styles.input, leftIcon ? styles.inputWithLeft : null]}
+          placeholderTextColor={Colors.grey400}
+          secureTextEntry={shouldObscure}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          {...rest}
+        />
+        {isPassword ? (
+          <TouchableOpacity
+            onPress={() => setShowPassword(!showPassword)}
+            style={styles.rightIcon}
+          >
+            <Ionicons
+              name={showPassword ? 'eye-outline' : 'eye-off-outline'}
+              size={20}
+              color={Colors.grey400}
+            />
+          </TouchableOpacity>
+        ) : rightIcon ? (
+          <TouchableOpacity onPress={onRightIconPress} style={styles.rightIcon}>
+            <Ionicons name={rightIcon} size={20} color={Colors.grey400} />
+          </TouchableOpacity>
+        ) : null}
+      </View>
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    marginBottom: 0,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.grey700,
+    marginBottom: 6,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.grey50,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: Colors.grey200,
+    height: 52,
+  },
+  inputWrapperFocused: {
+    borderColor: Colors.primary,
+    borderWidth: 2,
+  },
+  inputWrapperError: {
+    borderColor: Colors.error,
+  },
+  leftIcon: {
+    paddingLeft: 14,
+  },
+  rightIcon: {
+    paddingRight: 14,
+  },
+  input: {
+    flex: 1,
+    fontSize: 15,
+    color: Colors.grey900,
+    paddingHorizontal: 16,
+    paddingVertical: 0,
+    height: '100%',
+  },
+  inputWithLeft: {
+    paddingLeft: 8,
+  },
+  errorText: {
+    fontSize: 12,
+    color: Colors.error,
+    marginTop: 4,
+  },
+});
