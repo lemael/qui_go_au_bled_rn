@@ -7,6 +7,7 @@ import {
   StyleSheet,
   TextInputProps,
   ViewStyle,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
@@ -55,7 +56,7 @@ export function AppTextField({
             name={leftIcon}
             size={20}
             color={Colors.grey400}
-            style={styles.leftIcon}
+            style={[styles.leftIcon, multiline && { marginTop: 12 }]}
           />
         )}
         <TextInput
@@ -63,6 +64,8 @@ export function AppTextField({
             styles.input,
             leftIcon ? styles.inputWithLeft : null,
             multiline && styles.inputMultiline,
+            // Remove browser default outline on web (it conflicts with wrapper border)
+            Platform.OS === 'web' ? ({ outlineStyle: 'none' } as any) : null,
             style,
           ]}
           placeholderTextColor={Colors.grey400}
@@ -116,9 +119,8 @@ const styles = StyleSheet.create({
   },
   inputWrapperMultiline: {
     height: undefined,
-    minHeight: 52,
-    alignItems: 'flex-start',
-    paddingVertical: 10,
+    minHeight: 100,
+    alignItems: 'stretch',
   },
   inputWrapperFocused: {
     borderColor: Colors.primary,
@@ -144,7 +146,8 @@ const styles = StyleSheet.create({
   inputMultiline: {
     height: undefined,
     minHeight: 100,
-    paddingVertical: 4,
+    paddingVertical: 10,
+    alignSelf: 'stretch',
   },
   inputWithLeft: {
     paddingLeft: 8,
