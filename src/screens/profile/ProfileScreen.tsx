@@ -5,8 +5,8 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
+import { confirmAlert } from '../../utils/alert';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -33,14 +33,7 @@ export function ProfileScreen() {
   const isTransporter = checkTransporter(user);
 
   function handleSignOut() {
-    Alert.alert('Déconnexion', 'Êtes-vous sûr de vouloir vous déconnecter ?', [
-      { text: 'Annuler', style: 'cancel' },
-      {
-        text: 'Se déconnecter',
-        style: 'destructive',
-        onPress: () => signOut(),
-      },
-    ]);
+    confirmAlert('Déconnexion', 'Êtes-vous sûr de vouloir vous déconnecter ?', () => signOut(), 'Se déconnecter', true);
   }
 
   return (

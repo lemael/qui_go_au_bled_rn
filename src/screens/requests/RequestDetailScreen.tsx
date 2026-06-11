@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { confirmAlert, showAlert } from '../../utils/alert';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, requestStatusColors, requestStatusLabels } from '../../constants/colors';
@@ -31,27 +32,20 @@ export function RequestDetailScreen() {
       const updated = await requestsService.acceptRequest(request.id);
       setRequest(updated);
     } catch (e) {
-      Alert.alert('Erreur', e instanceof Error ? e.message : 'Erreur');
+      showAlert('Erreur', e instanceof Error ? e.message : 'Erreur');
     }
   }
 
   async function handleReject() {
     if (!request) return;
-    Alert.alert('Refuser', 'Confirmer le refus ?', [
-      { text: 'Annuler', style: 'cancel' },
-      {
-        text: 'Refuser',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            const updated = await requestsService.rejectRequest(request.id);
-            setRequest(updated);
-          } catch (e) {
-            Alert.alert('Erreur', e instanceof Error ? e.message : 'Erreur');
-          }
-        },
-      },
-    ]);
+    confirmAlert('Refuser', 'Confirmer le refus ?', async () => {
+      try {
+        const updated = await requestsService.rejectRequest(request.id);
+        setRequest(updated);
+      } catch (e) {
+        showAlert('Erreur', e instanceof Error ? e.message : 'Erreur');
+      }
+    }, 'Refuser', true);
   }
 
   if (loading || !request) return <LoadingOverlay />;

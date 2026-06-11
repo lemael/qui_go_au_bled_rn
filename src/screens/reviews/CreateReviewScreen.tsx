@@ -5,10 +5,10 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { showAlert } from '../../utils/alert';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -30,17 +30,15 @@ export function CreateReviewScreen() {
 
   async function handleSubmit() {
     if (rating === 0) {
-      Alert.alert('Note requise', 'Veuillez sélectionner une note.');
+      showAlert('Note requise', 'Veuillez sélectionner une note.');
       return;
     }
     setLoading(true);
     try {
       await reviewsService.createReview({ orderId: params.orderId, rating, comment: comment.trim() });
-      Alert.alert('Merci !', 'Votre avis a été publié.', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
+      showAlert('Merci !', 'Votre avis a été publié.', () => navigation.goBack());
     } catch (e) {
-      Alert.alert('Erreur', e instanceof Error ? e.message : 'Erreur');
+      showAlert('Erreur', e instanceof Error ? e.message : 'Erreur');
     } finally {
       setLoading(false);
     }

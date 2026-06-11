@@ -6,9 +6,9 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  Alert,
   RefreshControl,
 } from 'react-native';
+import { confirmAlert, showAlert } from '../../utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { AdminStats, User, TransportAd } from '../../types';
@@ -46,39 +46,25 @@ export function AdminScreen() {
   useEffect(() => { load(); }, []);
 
   async function handleDeleteUser(userId: string) {
-    Alert.alert('Supprimer', 'Supprimer cet utilisateur ?', [
-      { text: 'Annuler', style: 'cancel' },
-      {
-        text: 'Supprimer',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await adminService.deleteUser(userId);
-            setUsers((prev) => prev.filter((u) => u.id !== userId));
-          } catch (e) {
-            Alert.alert('Erreur', e instanceof Error ? e.message : 'Erreur');
-          }
-        },
-      },
-    ]);
+    confirmAlert('Supprimer', 'Supprimer cet utilisateur ?', async () => {
+      try {
+        await adminService.deleteUser(userId);
+        setUsers((prev) => prev.filter((u) => u.id !== userId));
+      } catch (e) {
+        showAlert('Erreur', e instanceof Error ? e.message : 'Erreur');
+      }
+    }, 'Supprimer', true);
   }
 
   async function handleDeleteAd(adId: string) {
-    Alert.alert('Supprimer', 'Supprimer cette annonce ?', [
-      { text: 'Annuler', style: 'cancel' },
-      {
-        text: 'Supprimer',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await adminService.deleteAd(adId);
-            setAds((prev) => prev.filter((a) => a.id !== adId));
-          } catch (e) {
-            Alert.alert('Erreur', e instanceof Error ? e.message : 'Erreur');
-          }
-        },
-      },
-    ]);
+    confirmAlert('Supprimer', 'Supprimer cette annonce ?', async () => {
+      try {
+        await adminService.deleteAd(adId);
+        setAds((prev) => prev.filter((a) => a.id !== adId));
+      } catch (e) {
+        showAlert('Erreur', e instanceof Error ? e.message : 'Erreur');
+      }
+    }, 'Supprimer', true);
   }
 
   if (loading) return <LoadingOverlay />;

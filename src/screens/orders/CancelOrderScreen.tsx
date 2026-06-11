@@ -4,10 +4,10 @@ import {
   Text,
   ScrollView,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { confirmAlert, showAlert } from '../../utils/alert';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Colors } from '../../constants/colors';
@@ -27,30 +27,25 @@ export function CancelOrderScreen() {
 
   async function handleCancel() {
     if (!reason.trim()) {
-      Alert.alert('Motif requis', 'Veuillez indiquer un motif d\'annulation.');
+      showAlert('Motif requis', "Veuillez indiquer un motif d'annulation.");
       return;
     }
-    Alert.alert(
-      'Confirmer l\'annulation',
+    confirmAlert(
+      "Confirmer l'annulation",
       'Êtes-vous sûr de vouloir annuler ce transport ?',
-      [
-        { text: 'Non', style: 'cancel' },
-        {
-          text: 'Oui, annuler',
-          style: 'destructive',
-          onPress: async () => {
-            setLoading(true);
-            try {
-              await ordersService.cancelOrder(params.orderId, reason.trim());
-              navigation.pop(2); // go back to MyTransports
-            } catch (e) {
-              Alert.alert('Erreur', e instanceof Error ? e.message : 'Erreur');
-            } finally {
-              setLoading(false);
-            }
-          },
-        },
-      ]
+      async () => {
+        setLoading(true);
+        try {
+          await ordersService.cancelOrder(params.orderId, reason.trim());
+          navigation.pop(2);
+        } catch (e) {
+          showAlert('Erreur', e instanceof Error ? e.message : 'Erreur');
+        } finally {
+          setLoading(false);
+        }
+      },
+      'Oui, annuler',
+      true,
     );
   }
 

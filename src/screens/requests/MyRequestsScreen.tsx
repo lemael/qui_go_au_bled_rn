@@ -5,9 +5,9 @@ import {
   FlatList,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   RefreshControl,
 } from 'react-native';
+import { confirmAlert, showAlert } from '../../utils/alert';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -49,28 +49,21 @@ export function MyRequestsScreen() {
         prev.map((r) => (r.id === requestId ? { ...r, status: 'ACCEPTED' } : r))
       );
     } catch (e) {
-      Alert.alert('Erreur', e instanceof Error ? e.message : 'Erreur');
+      showAlert('Erreur', e instanceof Error ? e.message : 'Erreur');
     }
   }
 
   async function handleReject(requestId: string) {
-    Alert.alert('Refuser', 'Voulez-vous refuser cette demande ?', [
-      { text: 'Annuler', style: 'cancel' },
-      {
-        text: 'Refuser',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await requestsService.rejectRequest(requestId);
-            setRequests((prev) =>
-              prev.map((r) => (r.id === requestId ? { ...r, status: 'REJECTED' } : r))
-            );
-          } catch (e) {
-            Alert.alert('Erreur', e instanceof Error ? e.message : 'Erreur');
-          }
-        },
-      },
-    ]);
+    confirmAlert('Refuser', 'Voulez-vous refuser cette demande ?', async () => {
+      try {
+        await requestsService.rejectRequest(requestId);
+        setRequests((prev) =>
+          prev.map((r) => (r.id === requestId ? { ...r, status: 'REJECTED' } : r))
+        );
+      } catch (e) {
+        showAlert('Erreur', e instanceof Error ? e.message : 'Erreur');
+      }
+    }, 'Refuser', true);
   }
 
   if (loading) return <LoadingOverlay />;

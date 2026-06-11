@@ -4,11 +4,11 @@ import {
   Text,
   ScrollView,
   StyleSheet,
-  Alert,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { showAlert } from '../../utils/alert';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
@@ -71,11 +71,9 @@ export function CreateAdScreen() {
         pricePerKg: parseFloat(form.pricePerKg),
         description: form.description.trim(),
       });
-      Alert.alert('Succès', 'Votre annonce a été publiée.', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
+      showAlert('Succès', 'Votre annonce a été publiée.', () => navigation.goBack());
     } catch (e) {
-      Alert.alert('Erreur', e instanceof Error ? e.message : 'Erreur');
+      showAlert('Erreur', e instanceof Error ? e.message : 'Erreur');
     } finally {
       setLoading(false);
     }
