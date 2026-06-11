@@ -45,7 +45,7 @@ model User {
   phone          String
   address        String
   photoUrl       String?
-  role           UserRole @default(client)
+  role           UserRole @default(both)
   averageRating  Float    @default(0)
   totalReviews   Int      @default(0)
   fcmToken       String?

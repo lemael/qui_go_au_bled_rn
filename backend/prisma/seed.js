@@ -22,7 +22,7 @@ async function main() {
       password: await hash('password123'),
       phone: '+33 6 55 66 77 88',
       address: 'Lyon, France',
-      role: 'client',
+      role: 'both',
     },
     {
       fullName: 'Admin',
