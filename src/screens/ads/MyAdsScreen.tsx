@@ -5,9 +5,9 @@ import {
   FlatList,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   RefreshControl,
 } from 'react-native';
+import { confirmAlert, showAlert } from '../../utils/alert';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -41,21 +41,14 @@ export function MyAdsScreen() {
   useEffect(() => { loadAds(); }, [loadAds]);
 
   async function handleDelete(adId: string) {
-    Alert.alert('Supprimer', 'Êtes-vous sûr de vouloir supprimer cette annonce ?', [
-      { text: 'Annuler', style: 'cancel' },
-      {
-        text: 'Supprimer',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await adsService.deleteAd(adId);
-            setAds((prev) => prev.filter((a) => a.id !== adId));
-          } catch (e) {
-            Alert.alert('Erreur', e instanceof Error ? e.message : 'Erreur');
-          }
-        },
-      },
-    ]);
+    confirmAlert('Supprimer', 'Êtes-vous sûr de vouloir supprimer cette annonce ?', async () => {
+      try {
+        await adsService.deleteAd(adId);
+        setAds((prev) => prev.filter((a) => a.id !== adId));
+      } catch (e) {
+        showAlert('Erreur', e instanceof Error ? e.message : 'Erreur');
+      }
+    }, 'Supprimer', true);
   }
 
   if (loading) return <LoadingOverlay />;
@@ -87,13 +80,25 @@ export function MyAdsScreen() {
               <View
                 style={[
                   styles.badge,
-                  { backgroundColor: item.status === 'active' ? `${Colors.success}20` : `${Colors.grey400}20` },
+                  {
+                    backgroundColor:
+                      item.status === 'active' ? `${Colors.success}20`
+                      : item.status === 'pending' ? `${Colors.warning}20`
+                      : item.status === 'rejected' ? `${Colors.error}20`
+                      : `${Colors.grey400}20`,
+                  },
                 ]}
               >
                 <Text
                   style={[
                     styles.badgeText,
-                    { color: item.status === 'active' ? Colors.success : Colors.grey500 },
+                    {
+                      color:
+                        item.status === 'active' ? Colors.success
+                        : item.status === 'pending' ? Colors.warning
+                        : item.status === 'rejected' ? Colors.error
+                        : Colors.grey500,
+                    },
                   ]}
                 >
                   {adStatusLabels[item.status] ?? item.status}

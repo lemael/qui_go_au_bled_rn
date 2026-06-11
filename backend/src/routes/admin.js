@@ -43,6 +43,67 @@ router.get('/ads', async (req, res) => {
   }
 });
 
+// GET /admin/ads/pending
+router.get('/ads/pending', async (req, res) => {
+  try {
+    const ads = await prisma.transportAd.findMany({
+      where: { status: 'pending' },
+      include: { transporter: true },
+      orderBy: { createdAt: 'desc' },
+    });
+    return res.json({ ads });
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+// PATCH /admin/ads/:id/approve
+router.patch('/ads/:id/approve', async (req, res) => {
+  try {
+    const ad = await prisma.transportAd.update({
+      where: { id: req.params.id },
+      data: { status: 'active' },
+      include: { transporter: true },
+    });
+    // Notify the transporter
+    await prisma.notification.create({
+      data: {
+        userId: ad.transporterId,
+        title: 'Annonce approuvée',
+        body: `Votre annonce ${ad.departureCity} → ${ad.arrivalCity} a été approuvée`,
+        type: 'AD_APPROVED',
+        data: { adId: ad.id },
+      },
+    });
+    return res.json({ ad });
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+// PATCH /admin/ads/:id/reject
+router.patch('/ads/:id/reject', async (req, res) => {
+  try {
+    const ad = await prisma.transportAd.update({
+      where: { id: req.params.id },
+      data: { status: 'rejected' },
+      include: { transporter: true },
+    });
+    await prisma.notification.create({
+      data: {
+        userId: ad.transporterId,
+        title: 'Annonce refusée',
+        body: `Votre annonce ${ad.departureCity} → ${ad.arrivalCity} a été refusée`,
+        type: 'AD_REJECTED',
+        data: { adId: ad.id },
+      },
+    });
+    return res.json({ ad });
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
+  }
+});
+
 // GET /admin/orders
 router.get('/orders', async (req, res) => {
   try {

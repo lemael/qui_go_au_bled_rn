@@ -21,20 +21,23 @@ export function AdminScreen() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [ads, setAds] = useState<TransportAd[]>([]);
+  const [pendingAds, setPendingAds] = useState<TransportAd[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [tab, setTab] = useState<'stats' | 'users' | 'ads'>('stats');
+  const [tab, setTab] = useState<'stats' | 'users' | 'ads' | 'pending'>('stats');
 
   async function load() {
     try {
-      const [s, u, a] = await Promise.all([
+      const [s, u, a, p] = await Promise.all([
         adminService.getStats(),
         adminService.getAllUsers(),
         adminService.getAllAds(),
+        adminService.getPendingAds(),
       ]);
       setStats(s);
       setUsers(u);
       setAds(a);
+      setPendingAds(p);
     } catch {
       // silent
     } finally {
@@ -61,10 +64,32 @@ export function AdminScreen() {
       try {
         await adminService.deleteAd(adId);
         setAds((prev) => prev.filter((a) => a.id !== adId));
+        setPendingAds((prev) => prev.filter((a) => a.id !== adId));
       } catch (e) {
         showAlert('Erreur', e instanceof Error ? e.message : 'Erreur');
       }
     }, 'Supprimer', true);
+  }
+
+  async function handleApproveAd(adId: string) {
+    try {
+      await adminService.approveAd(adId);
+      setPendingAds((prev) => prev.filter((a) => a.id !== adId));
+      load();
+    } catch (e) {
+      showAlert('Erreur', e instanceof Error ? e.message : 'Erreur');
+    }
+  }
+
+  async function handleRejectAd(adId: string) {
+    confirmAlert('Refuser', 'Refuser cette annonce ?', async () => {
+      try {
+        await adminService.rejectAd(adId);
+        setPendingAds((prev) => prev.filter((a) => a.id !== adId));
+      } catch (e) {
+        showAlert('Erreur', e instanceof Error ? e.message : 'Erreur');
+      }
+    }, 'Refuser', true);
   }
 
   if (loading) return <LoadingOverlay />;
@@ -73,14 +98,14 @@ export function AdminScreen() {
     <View style={styles.container}>
       {/* Tabs */}
       <View style={styles.tabs}>
-        {(['stats', 'users', 'ads'] as const).map((t) => (
+        {(['stats', 'users', 'pending', 'ads'] as const).map((t) => (
           <TouchableOpacity
             key={t}
             style={[styles.tab, tab === t && styles.tabActive]}
             onPress={() => setTab(t)}
           >
             <Text style={[styles.tabText, tab === t && styles.tabTextActive]}>
-              {t === 'stats' ? 'Stats' : t === 'users' ? 'Utilisateurs' : 'Annonces'}
+              {t === 'stats' ? 'Stats' : t === 'users' ? 'Users' : t === 'pending' ? `En attente${pendingAds.length ? ` (${pendingAds.length})` : ''}` : 'Annonces'}
             </Text>
           </TouchableOpacity>
         ))}
@@ -122,6 +147,34 @@ export function AdminScreen() {
               <TouchableOpacity onPress={() => handleDeleteUser(item.id)}>
                 <Ionicons name="trash-outline" size={20} color={Colors.error} />
               </TouchableOpacity>
+            </View>
+          )}
+        />
+      )}
+
+      {tab === 'pending' && (
+        <FlatList
+          data={pendingAds}
+          keyExtractor={(a) => a.id}
+          contentContainerStyle={styles.listContent}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={Colors.primary} />}
+          ListEmptyComponent={<Text style={styles.emptyText}>Aucune annonce en attente</Text>}
+          renderItem={({ item }) => (
+            <View style={styles.listCard}>
+              <View style={styles.listCardContent}>
+                <Text style={styles.listTitle}>{item.departureCity} → {item.arrivalCity}</Text>
+                <Text style={styles.listSub}>{item.transporterName}</Text>
+                <Text style={styles.listSub2}>{item.flightDate} · {item.maxWeightKg} kg · {item.pricePerKg} €/kg</Text>
+                {item.description ? <Text style={styles.listSub2} numberOfLines={2}>{item.description}</Text> : null}
+              </View>
+              <View style={styles.pendingActions}>
+                <TouchableOpacity style={styles.approveBtn} onPress={() => handleApproveAd(item.id)}>
+                  <Ionicons name="checkmark-outline" size={18} color={Colors.white} />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.rejectBtn} onPress={() => handleRejectAd(item.id)}>
+                  <Ionicons name="close-outline" size={18} color={Colors.white} />
+                </TouchableOpacity>
+              </View>
             </View>
           )}
         />
@@ -202,6 +255,22 @@ const styles = StyleSheet.create({
   listTitle: { fontSize: 14, fontWeight: '600', color: Colors.grey900 },
   listSub: { fontSize: 12, color: Colors.grey500 },
   listSub2: { fontSize: 11, color: Colors.grey400 },
+  emptyText: { textAlign: 'center', color: Colors.grey400, marginTop: 40, fontSize: 14 },
+  pendingActions: { flexDirection: 'column', gap: 6 },
+  approveBtn: {
+    backgroundColor: Colors.success,
+    borderRadius: 8,
+    padding: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rejectBtn: {
+    backgroundColor: Colors.error,
+    borderRadius: 8,
+    padding: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
 
 const statStyles = StyleSheet.create({

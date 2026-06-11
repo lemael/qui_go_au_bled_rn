@@ -29,6 +29,33 @@ const adminService = {
     }
   },
 
+  async getPendingAds(): Promise<TransportAd[]> {
+    try {
+      const res = await apiClient.get('/admin/ads/pending');
+      return res.data.ads as TransportAd[];
+    } catch (e) {
+      throw new Error(extractErrorMessage(e));
+    }
+  },
+
+  async approveAd(adId: string): Promise<TransportAd> {
+    try {
+      const res = await apiClient.patch(`/admin/ads/${adId}/approve`);
+      return res.data.ad as TransportAd;
+    } catch (e) {
+      throw new Error(extractErrorMessage(e));
+    }
+  },
+
+  async rejectAd(adId: string): Promise<TransportAd> {
+    try {
+      const res = await apiClient.patch(`/admin/ads/${adId}/reject`);
+      return res.data.ad as TransportAd;
+    } catch (e) {
+      throw new Error(extractErrorMessage(e));
+    }
+  },
+
   async getAllOrders(): Promise<TransportOrder[]> {
     try {
       const res = await apiClient.get('/admin/orders');

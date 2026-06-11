@@ -105,6 +105,7 @@ router.post('/', authMiddleware, async (req, res) => {
         maxWeightKg: Number(maxWeightKg),
         pricePerKg: Number(pricePerKg),
         description: description ?? '',
+        status: 'pending',
       },
       include: withTransporter,
     });
