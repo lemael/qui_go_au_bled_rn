@@ -8,10 +8,14 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+// DateTimePickerModal is only used on native, imported conditionally to avoid web errors
+let DateTimePickerModal: any = null;
+if (Platform.OS !== 'web') {
+  DateTimePickerModal = require('react-native-modal-datetime-picker').default;
+}
 import { showAlert } from '../../utils/alert';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { RootStackParamList } from '../../types';
@@ -107,23 +111,50 @@ export function CreateAdScreen() {
 
           {/* Date */}
           <Text style={styles.fieldLabel}>Date de vol</Text>
-          <TouchableOpacity
-            style={[styles.datePicker, errors.flightDate ? styles.datePickerError : null]}
-            onPress={() => setShowDatePicker(true)}
-          >
-            <Ionicons name="calendar-outline" size={18} color={Colors.grey400} />
-            <Text style={[styles.dateText, !form.flightDate && { color: Colors.grey400 }]}>
-              {form.flightDate ? formatDate(form.flightDate.toISOString()) : 'Sélectionner...'}
-            </Text>
-          </TouchableOpacity>
+          {Platform.OS === 'web' ? (
+            <View style={[styles.datePicker, errors.flightDate ? styles.datePickerError : null]}>
+              <Ionicons name="calendar-outline" size={18} color={Colors.grey400} />
+              <input
+                type="date"
+                min={new Date().toISOString().split('T')[0]}
+                value={form.flightDate ? formatDateInput(form.flightDate) : ''}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  update('flightDate', v ? new Date(v + 'T12:00:00') : null);
+                }}
+                style={{
+                  flex: 1,
+                  border: 'none',
+                  outline: 'none',
+                  background: 'transparent',
+                  fontSize: 15,
+                  color: form.flightDate ? Colors.grey900 : Colors.grey400,
+                  marginLeft: 8,
+                  cursor: 'pointer',
+                } as React.CSSProperties}
+              />
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={[styles.datePicker, errors.flightDate ? styles.datePickerError : null]}
+              onPress={() => setShowDatePicker(true)}
+            >
+              <Ionicons name="calendar-outline" size={18} color={Colors.grey400} />
+              <Text style={[styles.dateText, !form.flightDate && { color: Colors.grey400 }]}>
+                {form.flightDate ? formatDate(form.flightDate.toISOString()) : 'Sélectionner...'}
+              </Text>
+            </TouchableOpacity>
+          )}
           {errors.flightDate ? <Text style={styles.error}>{errors.flightDate}</Text> : null}
-          <DateTimePickerModal
-            isVisible={showDatePicker}
-            mode="date"
-            onConfirm={(d) => { update('flightDate', d); setShowDatePicker(false); }}
-            onCancel={() => setShowDatePicker(false)}
-            minimumDate={new Date()}
-          />
+          {Platform.OS !== 'web' && (
+            <DateTimePickerModal
+              isVisible={showDatePicker}
+              mode="date"
+              onConfirm={(d) => { update('flightDate', d); setShowDatePicker(false); }}
+              onCancel={() => setShowDatePicker(false)}
+              minimumDate={new Date()}
+            />
+          )}
 
           <View style={{ height: 16 }} />
           <AppTextField
@@ -171,7 +202,6 @@ export function CreateAdScreen() {
             multiline
             numberOfLines={4}
             leftIcon="document-text-outline"
-            style={{ height: 100, textAlignVertical: 'top' }}
           />
           <View style={{ height: 32 }} />
 

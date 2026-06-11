@@ -18,6 +18,7 @@ interface AppTextFieldProps extends TextInputProps {
   leftIcon?: keyof typeof Ionicons.glyphMap;
   rightIcon?: keyof typeof Ionicons.glyphMap;
   onRightIconPress?: () => void;
+  multiline?: boolean;
 }
 
 export function AppTextField({
@@ -28,6 +29,8 @@ export function AppTextField({
   rightIcon,
   onRightIconPress,
   secureTextEntry,
+  multiline,
+  style,
   ...rest
 }: AppTextFieldProps) {
   const [isFocused, setIsFocused] = useState(false);
@@ -42,6 +45,7 @@ export function AppTextField({
       <View
         style={[
           styles.inputWrapper,
+          multiline && styles.inputWrapperMultiline,
           isFocused && styles.inputWrapperFocused,
           !!error && styles.inputWrapperError,
         ]}
@@ -55,11 +59,18 @@ export function AppTextField({
           />
         )}
         <TextInput
-          style={[styles.input, leftIcon ? styles.inputWithLeft : null]}
+          style={[
+            styles.input,
+            leftIcon ? styles.inputWithLeft : null,
+            multiline && styles.inputMultiline,
+            style,
+          ]}
           placeholderTextColor={Colors.grey400}
           secureTextEntry={shouldObscure}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
+          multiline={multiline}
+          textAlignVertical={multiline ? 'top' : 'center'}
           {...rest}
         />
         {isPassword ? (
@@ -103,6 +114,12 @@ const styles = StyleSheet.create({
     borderColor: Colors.grey200,
     height: 52,
   },
+  inputWrapperMultiline: {
+    height: undefined,
+    minHeight: 52,
+    alignItems: 'flex-start',
+    paddingVertical: 10,
+  },
   inputWrapperFocused: {
     borderColor: Colors.primary,
     borderWidth: 2,
@@ -123,6 +140,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 0,
     height: '100%',
+  },
+  inputMultiline: {
+    height: undefined,
+    minHeight: 100,
+    paddingVertical: 4,
   },
   inputWithLeft: {
     paddingLeft: 8,
