@@ -1,10 +1,9 @@
-// In development (Android emulator): http://10.0.2.2:3000/api
-// In development (iOS simulator / web): http://localhost:3000/api
-// In production: set your Railway URL here
+// In development (web): http://localhost:3000/api
+// In production: set EXPO_PUBLIC_API_URL in Railway environment variables
 
-export const API_BASE_URL = __DEV__
-  ? 'http://10.0.2.2:3000/api'
-  : 'https://your-production-url.railway.app/api';
+export const API_BASE_URL =
+  process.env.EXPO_PUBLIC_API_URL ||
+  (__DEV__ ? 'http://localhost:3000/api' : 'https://your-backend.railway.app/api');
 
 export const APP_NAME = 'Qui Go au Bled';
 export const APP_VERSION = '1.0.0';
