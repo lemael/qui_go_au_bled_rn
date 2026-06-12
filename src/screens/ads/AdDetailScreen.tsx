@@ -45,10 +45,10 @@ export function AdDetailScreen() {
     if (!ad) return;
     const webUrl = `${WEB_BASE_URL}/ads/${ad.id}`;
     const text =
-      `Voyage de ${ad.departureCity} vers ${ad.arrivalCity} le ${formatDate(ad.flightDate)} — ` +
-      `Je peux transporter jusqu'à ${ad.maxWeightKg}kg à ${ad.pricePerKg}€/kg. ` +
-      `Voir l'annonce : ${webUrl}`;
-    Share.share({ message: text, url: webUrl });
+      `✈️ ${ad.departureCity} → ${ad.arrivalCity} — ${formatDate(ad.flightDate)}\n` +
+      `${ad.maxWeightKg}kg à ${ad.pricePerKg}€/kg\n\n` +
+      `Envoie ton colis maintenant :\n${webUrl}`;
+    Share.share({ message: text });
   }
 
   async function handleSendRequest() {
