@@ -3,7 +3,10 @@
 
 export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL ||
-  (__DEV__ ? 'http://localhost:3000/api' : 'https://your-backend.railway.app/api');
+  (__DEV__ ? 'http://localhost:3000/api' : 'https://quigoaubledrn-production.up.railway.app/api');
+
+// Base URL for public web sharing links (no /api suffix)
+export const WEB_BASE_URL = API_BASE_URL.replace(/\/api$/, '');
 
 export const APP_NAME = 'Qui Go au Bled';
 export const APP_VERSION = '1.0.0';

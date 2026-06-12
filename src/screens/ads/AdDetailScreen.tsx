@@ -12,6 +12,7 @@ import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
+import { WEB_BASE_URL } from '../../constants/api';
 import { RootStackParamList, TransportAd } from '../../types';
 import { useAuthStore } from '../../store/auth.store';
 import adsService from '../../services/ads.service';
@@ -42,11 +43,12 @@ export function AdDetailScreen() {
 
   async function handleShare() {
     if (!ad) return;
+    const webUrl = `${WEB_BASE_URL}/ads/${ad.id}`;
     const text =
       `Voyage de ${ad.departureCity} vers ${ad.arrivalCity} le ${formatDate(ad.flightDate)} — ` +
       `Je peux transporter jusqu'à ${ad.maxWeightKg}kg à ${ad.pricePerKg}€/kg. ` +
-      `Contactez-moi via Qui Go au Bled !`;
-    Share.share({ message: text });
+      `Voir l'annonce : ${webUrl}`;
+    Share.share({ message: text, url: webUrl });
   }
 
   async function handleSendRequest() {
