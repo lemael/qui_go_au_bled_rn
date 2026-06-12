@@ -158,9 +158,52 @@ router.delete('/users/:id', async (req, res) => {
 
 // DELETE /admin/ads/:id
 router.delete('/ads/:id', async (req, res) => {
+  const { reason } = req.body;
   try {
+    const ad = await prisma.transportAd.findUnique({
+      where: { id: req.params.id },
+      include: { transporter: true },
+    });
+    if (!ad) return res.status(404).json({ error: 'Ad not found' });
+
+    // Find active orders for this ad to notify clients
+    const activeOrders = await prisma.transportOrder.findMany({
+      where: { adId: req.params.id, status: { in: ['ACCEPTED', 'IN_PROGRESS'] } },
+      include: { client: true },
+    });
+
+    // Delete the ad (cascades to related records)
     await prisma.transportAd.delete({ where: { id: req.params.id } });
-    return res.json({ message: 'Ad deleted' });
+
+    const reasonText = reason ? ` Raison : ${reason}` : '';
+
+    // Notify transporter
+    await prisma.notification.create({
+      data: {
+        userId: ad.transporterId,
+        title: 'Annonce supprimée par l\'administrateur',
+        body: `Votre annonce ${ad.departureCity} → ${ad.arrivalCity} a été supprimée par un administrateur.${reasonText}`,
+        type: 'AD_DELETED',
+        data: { adId: ad.id },
+      },
+    });
+
+    // Notify clients with active orders
+    for (const order of activeOrders) {
+      if (order.clientId !== ad.transporterId) {
+        await prisma.notification.create({
+          data: {
+            userId: order.clientId,
+            title: 'Transport annulé',
+            body: `L'annonce ${ad.departureCity} → ${ad.arrivalCity} a été supprimée par un administrateur. Votre transport est annulé.${reasonText}`,
+            type: 'AD_DELETED',
+            data: { adId: ad.id },
+          },
+        });
+      }
+    }
+
+    return res.json({ message: 'Ad deleted', notifiedClients: activeOrders.length });
   } catch (e) {
     return res.status(500).json({ error: e.message });
   }

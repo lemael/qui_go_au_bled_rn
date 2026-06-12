@@ -64,15 +64,15 @@ export function AdminScreen() {
   }
 
   async function handleDeleteAd(adId: string) {
-    confirmAlert('Supprimer', 'Supprimer cette annonce ?', async () => {
-      try {
-        await adminService.deleteAd(adId);
-        setAds((prev) => prev.filter((a) => a.id !== adId));
-        setPendingAds((prev) => prev.filter((a) => a.id !== adId));
-      } catch (e) {
-        showAlert('Erreur', e instanceof Error ? e.message : 'Erreur');
-      }
-    }, 'Supprimer', true);
+    const reason = window.prompt('Raison de la suppression (optionnel) :');
+    if (reason === null) return; // annulé par l'admin
+    try {
+      await adminService.deleteAd(adId, reason.trim() || undefined);
+      setAds((prev) => prev.filter((a) => a.id !== adId));
+      setPendingAds((prev) => prev.filter((a) => a.id !== adId));
+    } catch (e) {
+      showAlert('Erreur', e instanceof Error ? e.message : 'Erreur');
+    }
   }
 
   async function handleApproveAd(adId: string) {

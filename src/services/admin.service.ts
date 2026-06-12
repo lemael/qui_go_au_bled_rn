@@ -73,9 +73,9 @@ const adminService = {
     }
   },
 
-  async deleteAd(adId: string): Promise<void> {
+  async deleteAd(adId: string, reason?: string): Promise<void> {
     try {
-      await apiClient.delete(`/admin/ads/${adId}`);
+      await apiClient.delete(`/admin/ads/${adId}`, { data: { reason } });
     } catch (e) {
       throw new Error(extractErrorMessage(e));
     }
