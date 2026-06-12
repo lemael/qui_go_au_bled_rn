@@ -113,7 +113,34 @@ router.get('/orders', async (req, res) => {
       include: { transporter: true, client: true },
       orderBy: { createdAt: 'desc' },
     });
-    return res.json({ orders });
+    return res.json({
+      orders: orders.map((o) => ({
+        id: o.id,
+        orderNumber: o.orderNumber,
+        transporterId: o.transporterId,
+        transporterName: o.transporter?.fullName ?? '',
+        clientId: o.clientId,
+        clientName: o.client?.fullName ?? '',
+        departureCity: o.departureCity,
+        arrivalCity: o.arrivalCity,
+        flightDate: o.flightDate,
+        pricePerKg: o.pricePerKg,
+        status: o.status,
+        cancellationInfo: o.cancellationAuthorId
+          ? {
+              authorId: o.cancellationAuthorId,
+              authorName:
+                o.client?.id === o.cancellationAuthorId
+                  ? o.client?.fullName
+                  : o.transporter?.fullName,
+              reason: o.cancellationReason,
+              cancelledAt: o.cancelledAt,
+            }
+          : undefined,
+        createdAt: o.createdAt,
+        updatedAt: o.updatedAt,
+      })),
+    });
   } catch (e) {
     return res.status(500).json({ error: e.message });
   }
