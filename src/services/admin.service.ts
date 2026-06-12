@@ -56,9 +56,9 @@ const adminService = {
     }
   },
 
-  async getAllOrders(): Promise<TransportOrder[]> {
+  async getAllOrders(status?: string): Promise<TransportOrder[]> {
     try {
-      const res = await apiClient.get('/admin/orders');
+      const res = await apiClient.get('/admin/orders', { params: status ? { status } : undefined });
       return res.data.orders as TransportOrder[];
     } catch (e) {
       throw new Error(extractErrorMessage(e));

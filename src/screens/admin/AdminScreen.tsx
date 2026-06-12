@@ -11,7 +11,7 @@ import {
 import { confirmAlert, showAlert } from '../../utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
-import { AdminStats, User, TransportAd } from '../../types';
+import { AdminStats, User, TransportAd, TransportOrder } from '../../types';
 import adminService from '../../services/admin.service';
 import { useAuthStore } from '../../store/auth.store';
 import { LoadingOverlay } from '../../components/LoadingOverlay';
@@ -22,22 +22,26 @@ export function AdminScreen() {
   const [users, setUsers] = useState<User[]>([]);
   const [ads, setAds] = useState<TransportAd[]>([]);
   const [pendingAds, setPendingAds] = useState<TransportAd[]>([]);
+  const [orders, setOrders] = useState<TransportOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [tab, setTab] = useState<'stats' | 'users' | 'ads' | 'pending'>('stats');
+  const [tab, setTab] = useState<'stats' | 'users' | 'ads' | 'pending' | 'transports'>('stats');
+  const [transportTab, setTransportTab] = useState<'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'>('IN_PROGRESS');
 
   async function load() {
     try {
-      const [s, u, a, p] = await Promise.all([
+      const [s, u, a, p, o] = await Promise.all([
         adminService.getStats(),
         adminService.getAllUsers(),
         adminService.getAllAds(),
         adminService.getPendingAds(),
+        adminService.getAllOrders(),
       ]);
       setStats(s);
       setUsers(u);
       setAds(a);
       setPendingAds(p);
+      setOrders(o);
     } catch {
       // silent
     } finally {
@@ -98,14 +102,18 @@ export function AdminScreen() {
     <View style={styles.container}>
       {/* Tabs */}
       <View style={styles.tabs}>
-        {(['stats', 'users', 'pending', 'ads'] as const).map((t) => (
+        {(['stats', 'users', 'pending', 'ads', 'transports'] as const).map((t) => (
           <TouchableOpacity
             key={t}
             style={[styles.tab, tab === t && styles.tabActive]}
             onPress={() => setTab(t)}
           >
             <Text style={[styles.tabText, tab === t && styles.tabTextActive]}>
-              {t === 'stats' ? 'Stats' : t === 'users' ? 'Users' : t === 'pending' ? `En attente${pendingAds.length ? ` (${pendingAds.length})` : ''}` : 'Annonces'}
+              {t === 'stats' ? 'Stats'
+                : t === 'users' ? 'Users'
+                : t === 'pending' ? `En attente${pendingAds.length ? ` (${pendingAds.length})` : ''}`
+                : t === 'transports' ? 'Transports'
+                : 'Annonces'}
             </Text>
           </TouchableOpacity>
         ))}
@@ -200,6 +208,57 @@ export function AdminScreen() {
           )}
         />
       )}
+
+      {tab === 'transports' && (
+        <View style={{ flex: 1 }}>
+          {/* Sub-tabs */}
+          <View style={styles.subTabs}>
+            {(['IN_PROGRESS', 'COMPLETED', 'CANCELLED'] as const).map((s) => (
+              <TouchableOpacity
+                key={s}
+                style={[styles.subTab, transportTab === s && styles.subTabActive]}
+                onPress={() => setTransportTab(s)}
+              >
+                <Text style={[styles.subTabText, transportTab === s && styles.subTabTextActive]}>
+                  {s === 'IN_PROGRESS' ? 'En cours'
+                    : s === 'COMPLETED' ? 'Complétés'
+                    : 'Annulés'}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <FlatList
+            data={orders.filter((o) => o.status === transportTab)}
+            keyExtractor={(o) => o.id}
+            contentContainerStyle={styles.listContent}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={Colors.primary} />}
+            ListEmptyComponent={<Text style={styles.emptyText}>Aucun transport</Text>}
+            renderItem={({ item }) => (
+              <View style={styles.listCard}>
+                <View style={[styles.transportDot, {
+                  backgroundColor:
+                    item.status === 'IN_PROGRESS' ? Colors.inProgress
+                    : item.status === 'COMPLETED' ? Colors.completed
+                    : Colors.cancelled,
+                }]} />
+                <View style={styles.listCardContent}>
+                  <Text style={styles.listTitle}>
+                    {item.clientName} → {item.transporterName}
+                  </Text>
+                  <Text style={styles.listSub}>{item.departureCity} → {item.arrivalCity}</Text>
+                  <Text style={styles.listSub2}>{item.flightDate}</Text>
+                  {item.status === 'CANCELLED' && item.cancellationInfo && (
+                    <Text style={[styles.listSub2, { color: Colors.error }]}>
+                      Annulé par {item.cancellationInfo.authorName}
+                      {item.cancellationInfo.reason ? ` · ${item.cancellationInfo.reason}` : ''}
+                    </Text>
+                  )}
+                </View>
+              </View>
+            )}
+          />
+        </View>
+      )}
     </View>
   );
 }
@@ -256,6 +315,17 @@ const styles = StyleSheet.create({
   listSub: { fontSize: 12, color: Colors.grey500 },
   listSub2: { fontSize: 11, color: Colors.grey400 },
   emptyText: { textAlign: 'center', color: Colors.grey400, marginTop: 40, fontSize: 14 },
+  subTabs: {
+    flexDirection: 'row',
+    backgroundColor: Colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.grey200,
+  },
+  subTab: { flex: 1, paddingVertical: 10, alignItems: 'center' },
+  subTabActive: { borderBottomWidth: 2, borderBottomColor: Colors.secondary },
+  subTabText: { fontSize: 13, color: Colors.grey500, fontWeight: '500' },
+  subTabTextActive: { color: Colors.secondary, fontWeight: '700' },
+  transportDot: { width: 10, height: 10, borderRadius: 5, marginTop: 2 },
   pendingActions: { flexDirection: 'column', gap: 6 },
   approveBtn: {
     backgroundColor: Colors.success,

@@ -6,8 +6,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   Share,
-  Alert,
 } from 'react-native';
+import { showAlert } from '../../utils/alert';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -54,11 +54,11 @@ export function AdDetailScreen() {
     setSending(true);
     try {
       await requestsService.createRequest(ad.id);
-      Alert.alert('Succès', 'Votre demande a été envoyée au transporteur.', [
-        { text: 'OK', onPress: () => navigation.navigate('MyRequests') },
-      ]);
+      showAlert('Succès', 'Votre demande a été envoyée au transporteur.', () =>
+        navigation.navigate('MyRequests')
+      );
     } catch (e) {
-      Alert.alert('Erreur', e instanceof Error ? e.message : 'Erreur');
+      showAlert('Erreur', e instanceof Error ? e.message : 'Erreur');
     } finally {
       setSending(false);
     }

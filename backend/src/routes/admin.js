@@ -104,10 +104,12 @@ router.patch('/ads/:id/reject', async (req, res) => {
   }
 });
 
-// GET /admin/orders
+// GET /admin/orders?status=...
 router.get('/orders', async (req, res) => {
+  const { status } = req.query;
   try {
     const orders = await prisma.transportOrder.findMany({
+      where: status ? { status } : undefined,
       include: { transporter: true, client: true },
       orderBy: { createdAt: 'desc' },
     });

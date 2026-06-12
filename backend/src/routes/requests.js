@@ -62,12 +62,13 @@ router.post('/', authMiddleware, async (req, res) => {
       include: includeRelations,
     });
 
+    const clientName = request.client?.fullName ?? 'Un utilisateur';
     // Notify the transporter
     await prisma.notification.create({
       data: {
         userId: ad.transporterId,
-        title: 'Nouvelle demande',
-        body: `Vous avez reçu une nouvelle demande de transport`,
+        title: 'Nouvelle demande de transport',
+        body: `${clientName} souhaite vous confier un colis (${ad.departureCity} → ${ad.arrivalCity})`,
         type: 'NEW_REQUEST',
         data: { requestId: request.id },
       },
