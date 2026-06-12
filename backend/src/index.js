@@ -71,8 +71,8 @@ app.get('/ads/:id', async (req, res) => {
     </div>
     ${ad.description ? `<p style="margin-top:12px;color:#444;font-size:.95rem">${ad.description}</p>` : ''}
   </div>
-  <a class="cta" href="https://play.google.com/store/apps/details?id=com.quigoaubled">
-    📲 Télécharger l'application pour envoyer un colis
+  <a class="cta" href="https://quigoaubled.up.railway.app/">
+    🔒 Connecte-toi pour sécuriser l'envoi du colis
   </a>
   <p class="footer">Qui Go au Bled — Transportez vos colis en toute confiance</p>
 </body>
